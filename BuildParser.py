@@ -13,7 +13,7 @@ def parse_build_output(build_output):
     if not test_summary_match:
         raise ValueError("No test summary found in build output.")
     
-    total_test_runs = test_summary_match.group(1)
+    total_tests = test_summary_match.group(1)  # Change this line to capture total tests
     total_failures = test_summary_match.group(2)
     total_errors = test_summary_match.group(3)
     total_skipped = test_summary_match.group(4)
@@ -22,7 +22,7 @@ def parse_build_output(build_output):
     build_status = "SUCCESS" if int(total_failures) == 0 and int(total_errors) == 0 else "FAILURE"
     
     return {
-        "total_test_runs": total_test_runs,
+        "total_tests": total_tests,
         "total_failures": total_failures,
         "total_errors": total_errors,
         "total_skipped": total_skipped,
