@@ -5,15 +5,15 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 def parse_build_output(build_output):
-    print("Build Output:")
-    print(build_output)  # Print build output for debugging
+    # Regular expression pattern for parsing test summary information
+    test_summary_pattern = re.compile(r'(?:Test runs?|Tests|Test cases?) run: (\d+),\s*Failures: (\d+),\s*Errors: (\d+),\s*Skipped: (\d+)', re.IGNORECASE)
 
-    # Parsing test summary from the build output
-    test_summary_match = re.search(r'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)', build_output)
+    # Parsing test summary from the build output using the pattern
+    test_summary_match = test_summary_pattern.search(build_output)
     if not test_summary_match:
         raise ValueError("No test summary found in build output.")
     
-    total_tests = test_summary_match.group(1)
+    total_test_runs = test_summary_match.group(1)
     total_failures = test_summary_match.group(2)
     total_errors = test_summary_match.group(3)
     total_skipped = test_summary_match.group(4)
@@ -22,7 +22,7 @@ def parse_build_output(build_output):
     build_status = "SUCCESS" if int(total_failures) == 0 and int(total_errors) == 0 else "FAILURE"
     
     return {
-        "total_tests": total_tests,
+        "total_test_runs": total_test_runs,
         "total_failures": total_failures,
         "total_errors": total_errors,
         "total_skipped": total_skipped,
