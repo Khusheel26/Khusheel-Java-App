@@ -5,16 +5,27 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 def parse_build_output(build_output):
-    # Parsing success and failure counts from the build output
-    test_summary = re.findall(r'(\d+) tests, (\d+) failures', build_output)
-    if not test_summary:
+    print("Build Output:")
+    print(build_output)  # Print build output for debugging
+
+    # Parsing test summary from the build output
+    test_summary_match = re.search(r'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)', build_output)
+    if not test_summary_match:
         raise ValueError("No test summary found in build output.")
-    total_tests, total_failures = test_summary[0]
-    # Extract additional info if needed
-    build_status = "SUCCESS" if int(total_failures) == 0 else "FAILURE"
+    
+    total_tests = test_summary_match.group(1)
+    total_failures = test_summary_match.group(2)
+    total_errors = test_summary_match.group(3)
+    total_skipped = test_summary_match.group(4)
+    
+    # Determine build status based on failures and errors
+    build_status = "SUCCESS" if int(total_failures) == 0 and int(total_errors) == 0 else "FAILURE"
+    
     return {
         "total_tests": total_tests,
         "total_failures": total_failures,
+        "total_errors": total_errors,
+        "total_skipped": total_skipped,
         "build_status": build_status
     }
 
@@ -33,6 +44,8 @@ def send_email(summary, developer_emails):
     Here is the summary of the latest Jenkins build:
     Total Tests: {summary['total_tests']}
     Total Failures: {summary['total_failures']}
+    Total Errors: {summary['total_errors']}
+    Total Skipped: {summary['total_skipped']}
     Build Status: {summary['build_status']}
     Best Regards,
     Jenkins Automation
@@ -56,7 +69,7 @@ def send_email(summary, developer_emails):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python BuildParser <path_to_log_file>")
+        print("Usage: python BuildParser.py <path_to_log_file>")
         sys.exit(1)
     
     log_file_path = sys.argv[1]
@@ -72,7 +85,11 @@ if __name__ == "__main__":
     ]
     
     # Parse the build output
-    summary = parse_build_output(build_output)
+    try:
+        summary = parse_build_output(build_output)
+    except ValueError as e:
+        print(f"Failed to parse build output: {e}")
+        sys.exit(1)
     
     # Send the email summary
     send_email(summary, developer_emails)
