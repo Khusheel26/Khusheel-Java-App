@@ -1,7 +1,9 @@
 import smtplib
 import re
+import sys
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
 def parse_build_output(build_output):
     # Parsing success and failure counts from the build output
     test_summary = re.findall(r'(\d+) tests, (\d+) failures', build_output)
@@ -15,6 +17,7 @@ def parse_build_output(build_output):
         "total_failures": total_failures,
         "build_status": build_status
     }
+
 def send_email(summary, developer_emails):
     # Email credentials and settings
     smtp_server = "smtp.gmail.com"
@@ -50,19 +53,26 @@ def send_email(summary, developer_emails):
         print("Email sent successfully!")
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
+
 if __name__ == "__main__":
-    # Example build output
-    build_output = """
-    Running tests...
-    100 tests, 5 failures
-    ... other build output ...
-    """
+    if len(sys.argv) != 2:
+        print("Usage: python BuildParser <path_to_log_file>")
+        sys.exit(1)
+    
+    log_file_path = sys.argv[1]
+    
+    # Read the build output from the file
+    with open(log_file_path, 'r') as file:
+        build_output = file.read()
+    
     # Developer emails
     developer_emails = [
         "khusheel26@gmail.com",
         "khusheel.maskar@octobit8.com"
     ]
+    
     # Parse the build output
     summary = parse_build_output(build_output)
+    
     # Send the email summary
     send_email(summary, developer_emails)
