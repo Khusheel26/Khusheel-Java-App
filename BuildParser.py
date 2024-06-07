@@ -30,6 +30,13 @@ def parse_build_output(build_output):
     }
 
 def send_email(summary, developer_emails):
+    # Extracting values from the summary dictionary
+    total_tests = summary.get('total_tests', 'N/A')
+    total_failures = summary.get('total_failures', 'N/A')
+    total_errors = summary.get('total_errors', 'N/A')
+    total_skipped = summary.get('total_skipped', 'N/A')
+    build_status = summary.get('build_status', 'N/A')
+
     # Email credentials and settings
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
@@ -37,25 +44,28 @@ def send_email(summary, developer_emails):
     smtp_password = "sgoy anpi zqzo hctc"
     from_email = smtp_username
     to_emails = developer_emails
-    subject = f"Jenkins Build Summary: {summary['build_status']}"
+    subject = f"Jenkins Build Summary: {build_status}"
+
     # Email body
     body = f"""
     Hello Team,
     Here is the summary of the latest Jenkins build:
-    Total Tests: {summary['total_tests']}
-    Total Failures: {summary['total_failures']}
-    Total Errors: {summary['total_errors']}
-    Total Skipped: {summary['total_skipped']}
-    Build Status: {summary['build_status']}
+    Total Tests: {total_tests}
+    Total Failures: {total_failures}
+    Total Errors: {total_errors}
+    Total Skipped: {total_skipped}
+    Build Status: {build_status}
     Best Regards,
     Jenkins Automation
     """
+
     # Create email message
     msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = ", ".join(to_emails)
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain'))
+
     # Send email
     try:
         server = smtplib.SMTP(smtp_server, smtp_port)
